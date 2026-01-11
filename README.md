@@ -22,6 +22,7 @@ This makes it easy to reference Windows screenshots and images in WSL2 environme
 - Desktop notifications on image save
 - **Debug logging**: Optional logging feature for troubleshooting
 - **Automatic icon generation**: Generates icon if not present
+- **Project Mode**: Save images to project directory and use relative paths for Claude Code integration
 
 ## Requirements
 
@@ -74,7 +75,20 @@ Or run the built executable directly:
   - Log file: `clipboard_log.txt` (in application directory)
 - **Settings file**: `settings.json` (in application directory)
   - Settings are automatically saved and persist across restarts
-  - Stores: save location, logging preference
+  - Stores: save location, logging preference, project mode settings
+
+### Project Mode
+
+Project Mode is designed for seamless integration with Claude Code:
+
+- **Enable**: Check "Enable Project Mode" in Settings
+- **Project Root**: Select your project directory
+- **Screenshots Folder**: Set the subdirectory name (default: `screenshots`)
+
+When enabled:
+- Images are saved to `{ProjectRoot}/{ScreenshotsFolder}/`
+- Clipboard receives relative path: `screenshots/clipboard_20240125_143052.png`
+- Perfect for referencing images in Claude Code conversations
 
 ## File Naming Format
 

@@ -56,6 +56,24 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 - Replaces the image in clipboard with the WSL path (text)
 - Path can be directly pasted into WSL terminal
 
+### 4.1 Project Mode
+
+**Description:** Alternative mode for Claude Code integration.
+
+**Purpose:**
+- Save images directly within the project directory
+- Use relative paths that Claude Code can reference without additional permissions
+- Quickly toggle between normal mode (WSL absolute paths) and project mode (relative paths)
+
+**Behavior (when enabled):**
+- Saves images to `{ProjectRootPath}/{ProjectScreenshotsDir}/`
+- Copies relative path to clipboard: `{ProjectScreenshotsDir}/filename.png`
+- Example: `screenshots/clipboard_20250111_123456.png`
+
+**Behavior (when disabled):**
+- Application behaves as before (WSL absolute paths)
+- Project root path setting persists for later use
+
 ### 5. System Tray Integration
 
 **Description:** Runs as a system tray application with minimal UI.
@@ -96,6 +114,25 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 - **Default:** `false`
 - **Persistence:** Saved to `settings.json`
 
+### Project Mode Enabled
+
+- **Type:** Boolean
+- **Default:** `false`
+- **Persistence:** Saved to `settings.json`
+
+### Project Root Path
+
+- **Type:** Directory path
+- **Default:** Empty string
+- **Persistence:** Saved to `settings.json`
+- **Note:** Path persists even when Project Mode is disabled
+
+### Project Screenshots Directory
+
+- **Type:** Relative directory name/path
+- **Default:** `screenshots`
+- **Persistence:** Saved to `settings.json`
+
 ### Settings File
 
 - **Location:** `<application_directory>/settings.json`
@@ -106,7 +143,10 @@ Example:
 ```json
 {
   "SavePath": "C:\\Users\\...\\ClipboardImages",
-  "EnableLogging": false
+  "EnableLogging": false,
+  "ProjectModeEnabled": false,
+  "ProjectRootPath": "",
+  "ProjectScreenshotsDir": "screenshots"
 }
 ```
 
@@ -133,18 +173,34 @@ Example:
 ### Settings Dialog
 
 ```
-┌─────────────────────────────────────┐
-│ Settings                        [X] │
-├─────────────────────────────────────┤
-│                                     │
-│ Save Path:                          │
-│ ┌─────────────────────────────────┐ │
-│ │ C:\path\to\ClipboardImages      │ │
-│ └─────────────────────────────────┘ │
-│                         [Browse...] │
-│                                     │
-│            [OK]     [Cancel]        │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│ Settings                                            [X] │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ Save Location:                                          │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ C:\path\to\ClipboardImages                          │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                           [Browse...]   │
+│                                                         │
+│ [x] Enable Project Mode                                 │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Project Mode Settings                               │ │
+│ │                                                     │ │
+│ │ Project Root:                                       │ │
+│ │ ┌───────────────────────────────────────────────┐   │ │
+│ │ │ C:\projects\my-project                        │   │ │
+│ │ └───────────────────────────────────────────────┘   │ │
+│ │                                      [Browse...]    │ │
+│ │                                                     │ │
+│ │ Screenshots Folder:                                 │ │
+│ │ ┌────────────────────────┐                          │ │
+│ │ │ screenshots            │                          │ │
+│ │ └────────────────────────┘                          │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│                              [OK]     [Cancel]          │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### Balloon Notifications

@@ -21,6 +21,7 @@ namespace ClippedImgToWSLPath
         private readonly PathConverter pathConverter = new PathConverter();
         private readonly ImageHashCalculator imageHashCalculator = new ImageHashCalculator();
         private readonly SettingsManager settingsManager;
+        private ProjectPathResolver projectPathResolver;
 
         // AddClipboardFormatListener API for event-driven clipboard monitoring
         [DllImport("user32.dll", SetLastError = true)]
@@ -43,7 +44,8 @@ namespace ClippedImgToWSLPath
             // Load settings from file
             settingsManager = new SettingsManager(Application.StartupPath);
             settingsManager.Load();
-            savePath = settingsManager.SavePath;
+            projectPathResolver = new ProjectPathResolver(settingsManager);
+            savePath = projectPathResolver.GetSavePath();
             enableLogging = settingsManager.EnableLogging;
 
             SetupSystemTray();
@@ -183,16 +185,24 @@ namespace ClippedImgToWSLPath
             {
                 string fileName = $"clipboard_{DateTime.Now:yyyyMMdd_HHmmss}.png";
                 string filePath = Path.Combine(savePath, fileName);
-                
+
                 image.Save(filePath, ImageFormat.Png);
-                
-                string wslPath = ConvertToWSLPath(filePath);
-                
-                Clipboard.SetText(wslPath);
-                
-                ShowBalloonTip("Image Saved", 
-                    $"Saved to: {filePath}\nWSL Path: {wslPath}\n(WSL path copied to clipboard)", 
-                    ToolTipIcon.Info);
+
+                string clipboardPath = projectPathResolver.GetClipboardPath(filePath);
+
+                Clipboard.SetText(clipboardPath);
+
+                string balloonMessage;
+                if (projectPathResolver.IsProjectModeActive())
+                {
+                    balloonMessage = $"Saved to: {filePath}\nRelative Path: {clipboardPath}\n(Relative path copied to clipboard)";
+                }
+                else
+                {
+                    balloonMessage = $"Saved to: {filePath}\nWSL Path: {clipboardPath}\n(WSL path copied to clipboard)";
+                }
+
+                ShowBalloonTip("Image Saved", balloonMessage, ToolTipIcon.Info);
             }
             catch (Exception ex)
             {
@@ -212,13 +222,20 @@ namespace ClippedImgToWSLPath
 
         private void ShowSettingsDialog()
         {
-            using (var dialog = new SettingsDialog(savePath))
+            using (var dialog = new SettingsDialog(settingsManager))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    savePath = dialog.SavePath;
-                    settingsManager.SavePath = savePath;
+                    // Update settings from dialog
+                    settingsManager.SavePath = dialog.SavePath;
+                    settingsManager.ProjectModeEnabled = dialog.ProjectModeEnabled;
+                    settingsManager.ProjectRootPath = dialog.ProjectRootPath;
+                    settingsManager.ProjectScreenshotsDir = dialog.ProjectScreenshotsDir;
                     settingsManager.Save();
+
+                    // Update save path using ProjectPathResolver
+                    savePath = projectPathResolver.GetSavePath();
+
                     if (!Directory.Exists(savePath))
                     {
                         Directory.CreateDirectory(savePath);

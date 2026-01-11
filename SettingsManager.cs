@@ -23,6 +23,24 @@ namespace ClippedImgToWSLPath
         public bool EnableLogging { get; set; }
 
         /// <summary>
+        /// Gets or sets whether Project Mode is enabled.
+        /// When enabled, images are saved to project directory and relative paths are copied to clipboard.
+        /// </summary>
+        public bool ProjectModeEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the project root directory path.
+        /// Used when Project Mode is enabled.
+        /// </summary>
+        public string ProjectRootPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the subdirectory name within the project root where screenshots are saved.
+        /// Default value is "screenshots".
+        /// </summary>
+        public string ProjectScreenshotsDir { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the SettingsManager class.
         /// </summary>
         /// <param name="baseDirectory">The base directory for settings file and default save path.</param>
@@ -34,6 +52,9 @@ namespace ClippedImgToWSLPath
             // Set default values
             SavePath = Path.Combine(_baseDirectory, "ClipboardImages");
             EnableLogging = false;
+            ProjectModeEnabled = false;
+            ProjectRootPath = string.Empty;
+            ProjectScreenshotsDir = "screenshots";
         }
 
         /// <summary>
@@ -59,6 +80,12 @@ namespace ClippedImgToWSLPath
                         SavePath = settings.SavePath;
                     }
                     EnableLogging = settings.EnableLogging;
+                    ProjectModeEnabled = settings.ProjectModeEnabled;
+                    ProjectRootPath = settings.ProjectRootPath ?? string.Empty;
+                    if (!string.IsNullOrEmpty(settings.ProjectScreenshotsDir))
+                    {
+                        ProjectScreenshotsDir = settings.ProjectScreenshotsDir;
+                    }
                 }
             }
             catch (JsonException)
@@ -81,7 +108,10 @@ namespace ClippedImgToWSLPath
                 var settings = new SettingsData
                 {
                     SavePath = SavePath,
-                    EnableLogging = EnableLogging
+                    EnableLogging = EnableLogging,
+                    ProjectModeEnabled = ProjectModeEnabled,
+                    ProjectRootPath = ProjectRootPath,
+                    ProjectScreenshotsDir = ProjectScreenshotsDir
                 };
 
                 var options = new JsonSerializerOptions
@@ -105,6 +135,9 @@ namespace ClippedImgToWSLPath
         {
             public string SavePath { get; set; } = string.Empty;
             public bool EnableLogging { get; set; }
+            public bool ProjectModeEnabled { get; set; }
+            public string ProjectRootPath { get; set; } = string.Empty;
+            public string ProjectScreenshotsDir { get; set; } = "screenshots";
         }
     }
 }

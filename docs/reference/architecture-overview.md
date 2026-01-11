@@ -25,10 +25,17 @@ ClippedImgToWSLPath is a Windows Forms system tray application that monitors the
 │                      │  │PathConverter│ │ImageHash   │ │   │
 │                      │  │             │ │Calculator  │ │   │
 │                      │  └─────────────┘ └─────────────┘ │   │
+│                      │          │                       │   │
+│                      │          ▼                       │   │
+│                      │  ┌─────────────────────────────┐ │   │
+│                      │  │   ProjectPathResolver       │ │   │
+│                      │  │  - Path mode resolution     │ │   │
+│                      │  └─────────────────────────────┘ │   │
 │                      │                                  │   │
 │                      │  ┌────────────────────────────┐  │   │
 │                      │  │     SettingsDialog         │  │   │
 │                      │  │  - Save path configuration │  │   │
+│                      │  │  - Project Mode settings   │  │   │
 │                      │  └────────────────────────────┘  │   │
 │                      │                                  │   │
 │                      │  ┌────────────────────────────┐  │   │
@@ -92,15 +99,32 @@ Utility class for calculating image hashes.
 |--------|-------------|
 | `ComputeHash(Image)` | Returns SHA256 hash as lowercase hex string |
 
-### 4. SettingsDialog (SettingsDialog.cs)
+### 4. ProjectPathResolver (ProjectPathResolver.cs)
+
+Utility class for resolving save and clipboard paths based on the current mode.
+
+**Responsibilities:**
+- Determine if Project Mode is active
+- Resolve save path (normal save path or project screenshots directory)
+- Resolve clipboard path (WSL path or relative path)
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `IsProjectModeActive()` | Returns true if Project Mode is enabled and configured |
+| `GetSavePath()` | Returns the directory path for saving images |
+| `GetClipboardPath(string)` | Returns the path to copy to clipboard |
+
+### 5. SettingsDialog (SettingsDialog.cs)
 
 Modal dialog for configuring application settings.
 
 **Responsibilities:**
 - Save path configuration
+- Project Mode configuration
 - Path validation
 
-### 5. IconGenerator (IconGenerator.cs)
+### 6. IconGenerator (IconGenerator.cs)
 
 Utility for icon generation (if needed).
 
@@ -144,13 +168,17 @@ ClippedImgToWSLPath/
 ├── MainForm.cs                   # Main application logic
 ├── PathConverter.cs              # Path conversion utility
 ├── ImageHashCalculator.cs        # Image hash utility
+├── ProjectPathResolver.cs        # Path mode resolution
+├── SettingsManager.cs            # Settings persistence
 ├── SettingsDialog.cs             # Settings dialog
 ├── Program.cs                    # Application entry point
 ├── IconGenerator.cs              # Icon utilities
 ├── icon.ico                      # Application icon
 ├── ClippedImgToWSLPath.Tests/    # Test project
 │   ├── PathConverterTests.cs     # Path converter tests
-│   └── ImageHashCalculatorTests.cs # Image hash tests
+│   ├── ImageHashCalculatorTests.cs # Image hash tests
+│   ├── SettingsManagerTests.cs   # Settings manager tests
+│   └── ProjectPathResolverTests.cs # Project path resolver tests
 ├── docs/                         # Documentation
 │   ├── reference/                # Current specifications
 │   ├── guides/                   # How-to guides

@@ -29,9 +29,18 @@ This is the central index for all project documentation. Check `_README_DOCS_RUL
 
 ---
 
+## Planning (In Progress)
+
+| Document | Status | Description |
+|----------|--------|-------------|
+| (none) | - | - |
+
+---
+
 ## Archived (Historical)
 
 | Document | Status | Description |
 |----------|--------|-------------|
+| [project-mode-feature.md](archived/completed-plans/project-mode-feature.md) | `[COMPLETED]` | Project Mode feature for Claude Code integration |
 | [clipboard-listener-implementation.md](planning/clipboard-listener-implementation.md) | `[COMPLETED]` | Replace timer polling with AddClipboardFormatListener API |
 | [settings-persistence.md](planning/settings-persistence.md) | `[COMPLETED]` | Settings persistence using JSON file storage |

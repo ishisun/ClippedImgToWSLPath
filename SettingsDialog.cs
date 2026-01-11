@@ -12,24 +12,46 @@ namespace ClippedImgToWSLPath
         private Button cancelButton = null!;
         private Label pathLabel = null!;
 
-        public string SavePath { get; private set; }
+        // Project Mode controls
+        private CheckBox projectModeCheckBox = null!;
+        private Label projectRootLabel = null!;
+        private TextBox projectRootTextBox = null!;
+        private Button projectRootBrowseButton = null!;
+        private Label screenshotsDirLabel = null!;
+        private TextBox screenshotsDirTextBox = null!;
+        private GroupBox projectModeGroupBox = null!;
 
-        public SettingsDialog(string currentPath)
+        public string SavePath { get; private set; }
+        public bool ProjectModeEnabled { get; private set; }
+        public string ProjectRootPath { get; private set; }
+        public string ProjectScreenshotsDir { get; private set; }
+
+        public SettingsDialog(SettingsManager settings)
         {
             InitializeComponent();
-            SavePath = currentPath;
-            pathTextBox.Text = currentPath;
+            SavePath = settings.SavePath;
+            ProjectModeEnabled = settings.ProjectModeEnabled;
+            ProjectRootPath = settings.ProjectRootPath;
+            ProjectScreenshotsDir = settings.ProjectScreenshotsDir;
+
+            pathTextBox.Text = settings.SavePath;
+            projectModeCheckBox.Checked = settings.ProjectModeEnabled;
+            projectRootTextBox.Text = settings.ProjectRootPath;
+            screenshotsDirTextBox.Text = settings.ProjectScreenshotsDir;
+
+            UpdateProjectModeControlsState();
         }
 
         private void InitializeComponent()
         {
             this.Text = "Settings";
-            this.Size = new Size(500, 200);
+            this.Size = new Size(500, 350);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
+            // Save Location section
             pathLabel = new Label
             {
                 Text = "Save Location:",
@@ -53,10 +75,71 @@ namespace ClippedImgToWSLPath
             };
             browseButton.Click += BrowseButton_Click;
 
+            // Project Mode section
+            projectModeCheckBox = new CheckBox
+            {
+                Text = "Enable Project Mode",
+                Location = new Point(20, 95),
+                Size = new Size(200, 25),
+                AutoSize = true
+            };
+            projectModeCheckBox.CheckedChanged += ProjectModeCheckBox_CheckedChanged;
+
+            projectModeGroupBox = new GroupBox
+            {
+                Text = "Project Mode Settings",
+                Location = new Point(20, 120),
+                Size = new Size(440, 130)
+            };
+
+            projectRootLabel = new Label
+            {
+                Text = "Project Root:",
+                Location = new Point(10, 25),
+                Size = new Size(100, 25),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            projectRootTextBox = new TextBox
+            {
+                Location = new Point(10, 50),
+                Size = new Size(320, 25),
+                ReadOnly = true
+            };
+
+            projectRootBrowseButton = new Button
+            {
+                Text = "Browse...",
+                Location = new Point(340, 48),
+                Size = new Size(80, 25)
+            };
+            projectRootBrowseButton.Click += ProjectRootBrowseButton_Click;
+
+            screenshotsDirLabel = new Label
+            {
+                Text = "Screenshots Folder:",
+                Location = new Point(10, 80),
+                Size = new Size(130, 25),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            screenshotsDirTextBox = new TextBox
+            {
+                Location = new Point(10, 100),
+                Size = new Size(200, 25)
+            };
+
+            projectModeGroupBox.Controls.Add(projectRootLabel);
+            projectModeGroupBox.Controls.Add(projectRootTextBox);
+            projectModeGroupBox.Controls.Add(projectRootBrowseButton);
+            projectModeGroupBox.Controls.Add(screenshotsDirLabel);
+            projectModeGroupBox.Controls.Add(screenshotsDirTextBox);
+
+            // Buttons
             okButton = new Button
             {
                 Text = "OK",
-                Location = new Point(280, 100),
+                Location = new Point(280, 265),
                 Size = new Size(80, 30),
                 DialogResult = DialogResult.OK
             };
@@ -65,7 +148,7 @@ namespace ClippedImgToWSLPath
             cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new Point(380, 100),
+                Location = new Point(380, 265),
                 Size = new Size(80, 30),
                 DialogResult = DialogResult.Cancel
             };
@@ -73,6 +156,8 @@ namespace ClippedImgToWSLPath
             this.Controls.Add(pathLabel);
             this.Controls.Add(pathTextBox);
             this.Controls.Add(browseButton);
+            this.Controls.Add(projectModeCheckBox);
+            this.Controls.Add(projectModeGroupBox);
             this.Controls.Add(okButton);
             this.Controls.Add(cancelButton);
 
@@ -98,6 +183,38 @@ namespace ClippedImgToWSLPath
         private void OkButton_Click(object? sender, EventArgs e)
         {
             SavePath = pathTextBox.Text;
+            ProjectModeEnabled = projectModeCheckBox.Checked;
+            ProjectRootPath = projectRootTextBox.Text;
+            ProjectScreenshotsDir = screenshotsDirTextBox.Text;
+        }
+
+        private void ProjectModeCheckBox_CheckedChanged(object? sender, EventArgs e)
+        {
+            UpdateProjectModeControlsState();
+        }
+
+        private void ProjectRootBrowseButton_Click(object? sender, EventArgs e)
+        {
+            using (var dialog = new FolderBrowserDialog())
+            {
+                dialog.Description = "Select the project root directory";
+                dialog.SelectedPath = projectRootTextBox.Text;
+                dialog.ShowNewFolderButton = true;
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    projectRootTextBox.Text = dialog.SelectedPath;
+                }
+            }
+        }
+
+        private void UpdateProjectModeControlsState()
+        {
+            bool enabled = projectModeCheckBox.Checked;
+            projectModeGroupBox.Enabled = enabled;
+            projectRootTextBox.Enabled = enabled;
+            projectRootBrowseButton.Enabled = enabled;
+            screenshotsDirTextBox.Enabled = enabled;
         }
     }
 }
