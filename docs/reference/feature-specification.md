@@ -88,12 +88,27 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 - **Type:** Directory path
 - **Default:** `<application_directory>/ClipboardImages/`
 - **Validation:** Directory must exist or be creatable
+- **Persistence:** Saved to `settings.json`
 
 ### Logging Enable
 
 - **Type:** Boolean
 - **Default:** `false`
-- **Persistence:** In-memory only (resets on restart)
+- **Persistence:** Saved to `settings.json`
+
+### Settings File
+
+- **Location:** `<application_directory>/settings.json`
+- **Format:** JSON
+- **Created:** Automatically on first settings change
+
+Example:
+```json
+{
+  "SavePath": "C:\\Users\\...\\ClipboardImages",
+  "EnableLogging": false
+}
+```
 
 ---
 
@@ -159,6 +174,5 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 ## Limitations
 
 1. **Network paths:** UNC paths (`\\server\share`) are not converted
-2. **Settings persistence:** Timer and logging settings reset on restart
-3. **Image formats:** Only saves as PNG (original format not preserved)
-4. **Large images:** No size limit check (may cause memory issues)
+2. **Image formats:** Only saves as PNG (original format not preserved)
+3. **Large images:** No size limit check (may cause memory issues)

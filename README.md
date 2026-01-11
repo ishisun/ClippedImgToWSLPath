@@ -72,6 +72,9 @@ Or run the built executable directly:
 - Double-click the tray icon or right-click → "Settings" to change the save location
 - **Debug logging**: Right-click tray icon → "Enable Logging" to enable debug output
   - Log file: `clipboard_log.txt` (in application directory)
+- **Settings file**: `settings.json` (in application directory)
+  - Settings are automatically saved and persist across restarts
+  - Stores: save location, logging preference
 
 ## File Naming Format
 

@@ -34,3 +34,4 @@ This is the central index for all project documentation. Check `_README_DOCS_RUL
 | Document | Status | Description |
 |----------|--------|-------------|
 | [clipboard-listener-implementation.md](planning/clipboard-listener-implementation.md) | `[COMPLETED]` | Replace timer polling with AddClipboardFormatListener API |
+| [settings-persistence.md](planning/settings-persistence.md) | `[COMPLETED]` | Settings persistence using JSON file storage |

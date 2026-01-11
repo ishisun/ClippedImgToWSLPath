@@ -26,6 +26,7 @@
   <ItemGroup>
     <Compile Include="..\PathConverter.cs" Link="PathConverter.cs" />
     <Compile Include="..\ImageHashCalculator.cs" Link="ImageHashCalculator.cs" />
+    <Compile Include="..\SettingsManager.cs" Link="SettingsManager.cs" />
   </ItemGroup>
 
 </Project>

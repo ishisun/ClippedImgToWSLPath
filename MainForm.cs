@@ -11,15 +11,16 @@ namespace ClippedImgToWSLPath
     public partial class MainForm : Form
     {
         private NotifyIcon trayIcon = null!;
-        private string savePath = Path.Combine(Application.StartupPath, "ClipboardImages");
+        private string savePath;
         private string lastClipboardHash = "";
         private string logPath = Path.Combine(Application.StartupPath, "clipboard_log.txt");
         private bool isProcessingClipboard = false;
         private bool enableLogging = false; // Logging on/off
 
-        // Utility class instances for path conversion and image hashing
+        // Utility class instances for path conversion, image hashing, and settings
         private readonly PathConverter pathConverter = new PathConverter();
         private readonly ImageHashCalculator imageHashCalculator = new ImageHashCalculator();
+        private readonly SettingsManager settingsManager;
 
         // AddClipboardFormatListener API for event-driven clipboard monitoring
         [DllImport("user32.dll", SetLastError = true)]
@@ -33,14 +34,20 @@ namespace ClippedImgToWSLPath
         public MainForm()
         {
             InitializeComponent();
-            
+
             // Hide the form before doing anything else
             this.WindowState = FormWindowState.Minimized;
             this.ShowInTaskbar = false;
             this.Visible = false;
-            
+
+            // Load settings from file
+            settingsManager = new SettingsManager(Application.StartupPath);
+            settingsManager.Load();
+            savePath = settingsManager.SavePath;
+            enableLogging = settingsManager.EnableLogging;
+
             SetupSystemTray();
-            
+
             if (!Directory.Exists(savePath))
             {
                 Directory.CreateDirectory(savePath);
@@ -92,10 +99,12 @@ namespace ClippedImgToWSLPath
 
             var loggingItem = new ToolStripMenuItem("Enable Logging");
             loggingItem.Checked = enableLogging;
-            loggingItem.Click += (s, e) => 
+            loggingItem.Click += (s, e) =>
             {
                 enableLogging = !enableLogging;
                 loggingItem.Checked = enableLogging;
+                settingsManager.EnableLogging = enableLogging;
+                settingsManager.Save();
                 if (enableLogging)
                 {
                     WriteLog("Logging enabled");
@@ -208,6 +217,8 @@ namespace ClippedImgToWSLPath
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     savePath = dialog.SavePath;
+                    settingsManager.SavePath = savePath;
+                    settingsManager.Save();
                     if (!Directory.Exists(savePath))
                     {
                         Directory.CreateDirectory(savePath);
