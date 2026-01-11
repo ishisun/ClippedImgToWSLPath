@@ -13,12 +13,11 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 **Description:** Continuously monitors the Windows clipboard for image content.
 
 **Behavior:**
-- Polls clipboard every 1 second (configurable via timer)
+- Uses AddClipboardFormatListener API for event-driven clipboard monitoring
+- Receives WM_CLIPBOARDUPDATE messages when clipboard content changes
 - Detects images copied from any application
 - Uses SHA256 hashing to detect duplicate images
 - Skips processing if the same image is still in clipboard
-
-**Menu Option:** "Enable Timer" - Toggle clipboard monitoring on/off
 
 ### 2. Automatic Image Saving
 
@@ -66,7 +65,6 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 - Balloon notifications for save operations
 - Context menu with options:
   - Settings
-  - Enable Timer (toggle)
   - Enable Logging (toggle)
   - Exit
 
@@ -91,12 +89,6 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 - **Default:** `<application_directory>/ClipboardImages/`
 - **Validation:** Directory must exist or be creatable
 
-### Timer Enable
-
-- **Type:** Boolean
-- **Default:** `true`
-- **Persistence:** In-memory only (resets on restart)
-
 ### Logging Enable
 
 - **Type:** Boolean
@@ -117,7 +109,6 @@ ClippedImgToWSLPath automatically saves clipboard images and provides WSL-compat
 ```
 ┌─────────────────┐
 │ Settings        │
-│ Enable Timer  ✓ │
 │ Enable Logging  │
 ├─────────────────┤
 │ Exit            │

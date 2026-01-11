@@ -11,32 +11,24 @@ namespace ClippedImgToWSLPath
     public partial class MainForm : Form
     {
         private NotifyIcon trayIcon = null!;
-        private System.Windows.Forms.Timer clipboardTimer;
         private string savePath = Path.Combine(Application.StartupPath, "ClipboardImages");
         private string lastClipboardHash = "";
         private string logPath = Path.Combine(Application.StartupPath, "clipboard_log.txt");
         private bool isProcessingClipboard = false;
-        private DateTime lastClipboardTime = DateTime.MinValue;
         private bool enableLogging = false; // Logging on/off
-        private bool timerEnabled = true; // Timer functionality on/off
 
         // Utility class instances for path conversion and image hashing
         private readonly PathConverter pathConverter = new PathConverter();
         private readonly ImageHashCalculator imageHashCalculator = new ImageHashCalculator();
 
-        [DllImport("user32.dll")]
-        static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+        // AddClipboardFormatListener API for event-driven clipboard monitoring
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool AddClipboardFormatListener(IntPtr hwnd);
 
-        [DllImport("user32.dll")]
-        static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
 
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(IntPtr hwnd, int wMsg, IntPtr wParam, IntPtr lParam);
-
-        const int WM_DRAWCLIPBOARD = 0x308;
-        const int WM_CHANGECBCHAIN = 0x30D;
-
-        IntPtr nextClipboardViewer;
+        const int WM_CLIPBOARDUPDATE = 0x031D;
 
         public MainForm()
         {
@@ -54,13 +46,11 @@ namespace ClippedImgToWSLPath
                 Directory.CreateDirectory(savePath);
             }
 
-            nextClipboardViewer = SetClipboardViewer(this.Handle);
-            
-            // タイマーを設定して定期的にクリップボードをチェック
-            clipboardTimer = new System.Windows.Forms.Timer();
-            clipboardTimer.Interval = 1000; // 1秒ごと
-            clipboardTimer.Tick += ClipboardTimer_Tick;
-            clipboardTimer.Start();
+            // Register for clipboard format listener notifications
+            if (!AddClipboardFormatListener(this.Handle))
+            {
+                WriteLog("Failed to add clipboard format listener");
+            }
         }
 
         private void SetupSystemTray()
@@ -99,28 +89,7 @@ namespace ClippedImgToWSLPath
             var settingsItem = new ToolStripMenuItem("Settings");
             settingsItem.Click += (s, e) => ShowSettingsDialog();
             contextMenu.Items.Add(settingsItem);
-            
-            var timerItem = new ToolStripMenuItem("Enable Timer");
-            timerItem.Checked = timerEnabled;
-            timerItem.Click += (s, e) => 
-            {
-                timerEnabled = !timerEnabled;
-                timerItem.Checked = timerEnabled;
-                if (timerEnabled)
-                {
-                    clipboardTimer.Start();
-                    ShowBalloonTip("Timer Enabled", "Clipboard monitoring is now active", ToolTipIcon.Info);
-                    WriteLog("Timer enabled");
-                }
-                else
-                {
-                    clipboardTimer.Stop();
-                    ShowBalloonTip("Timer Disabled", "Clipboard monitoring is now inactive", ToolTipIcon.Info);
-                    WriteLog("Timer disabled");
-                }
-            };
-            contextMenu.Items.Add(timerItem);
-            
+
             var loggingItem = new ToolStripMenuItem("Enable Logging");
             loggingItem.Checked = enableLogging;
             loggingItem.Click += (s, e) => 
@@ -148,16 +117,8 @@ namespace ClippedImgToWSLPath
         {
             switch (m.Msg)
             {
-                case WM_DRAWCLIPBOARD:
-                    HandleClipboardChange();
-                    SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
-                    break;
-
-                case WM_CHANGECBCHAIN:
-                    if (m.WParam == nextClipboardViewer)
-                        nextClipboardViewer = m.LParam;
-                    else
-                        SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+                case WM_CLIPBOARDUPDATE:
+                    ProcessClipboardChange();
                     break;
 
                 default:
@@ -166,39 +127,26 @@ namespace ClippedImgToWSLPath
             }
         }
 
-        private void HandleClipboardChange()
+        private void ProcessClipboardChange()
         {
-            // 短時間に連続してイベントが発生した場合は無視
-            if ((DateTime.Now - lastClipboardTime).TotalMilliseconds < 200)
-            {
-                WriteLog("HandleClipboardChange called - ignored (too soon)");
-                return;
-            }
-            
-            lastClipboardTime = DateTime.Now;
-            WriteLog("HandleClipboardChange called - processing");
-        }
+            if (isProcessingClipboard) return;
 
-        private void ClipboardTimer_Tick(object? sender, EventArgs e)
-        {
-            if (isProcessingClipboard || !timerEnabled) return;
-            
             try
             {
                 isProcessingClipboard = true;
-                
+
                 if (Clipboard.ContainsImage())
                 {
-                    WriteLog("Timer: Clipboard contains image");
+                    WriteLog("Clipboard update: contains image");
                     Image? image = Clipboard.GetImage();
-                    
+
                     if (image != null)
                     {
                         string hash = GetImageHash(image);
-                        
+
                         if (hash != lastClipboardHash)
                         {
-                            WriteLog($"Timer: New image found: {image.Width}x{image.Height}");
+                            WriteLog($"New image: {image.Width}x{image.Height}");
                             lastClipboardHash = hash;
                             SaveImageAndConvertPath(image);
                         }
@@ -207,7 +155,7 @@ namespace ClippedImgToWSLPath
             }
             catch (Exception ex)
             {
-                WriteLog($"Timer Exception: {ex.Message}");
+                WriteLog($"Clipboard processing error: {ex.Message}");
             }
             finally
             {
@@ -270,9 +218,7 @@ namespace ClippedImgToWSLPath
 
         private void ExitApplication()
         {
-            clipboardTimer?.Stop();
-            clipboardTimer?.Dispose();
-            ChangeClipboardChain(this.Handle, nextClipboardViewer);
+            RemoveClipboardFormatListener(this.Handle);
             trayIcon.Visible = false;
             Application.Exit();
         }
@@ -298,7 +244,7 @@ namespace ClippedImgToWSLPath
             }
             else
             {
-                ChangeClipboardChain(this.Handle, nextClipboardViewer);
+                RemoveClipboardFormatListener(this.Handle);
             }
             base.OnFormClosing(e);
         }

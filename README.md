@@ -16,7 +16,7 @@ This makes it easy to reference Windows screenshots and images in WSL2 environme
 
 - Runs in the system tray as a background service
 - **Windows+Shift+S screenshot support**: Full compatibility with Windows native screenshot tool
-- **Timer-based monitoring**: Checks clipboard every second to reliably detect new images
+- **Event-driven monitoring**: Instant clipboard change detection using AddClipboardFormatListener API
 - Duplicate image detection (using SHA256 hash)
 - Customizable save location
 - Desktop notifications on image save
@@ -94,7 +94,7 @@ Example: `clipboard_20240125_143052.png`
 
 ## Technical Details
 
-- **Clipboard monitoring**: Uses both Windows API and timer-based monitoring
+- **Clipboard monitoring**: Uses AddClipboardFormatListener API for event-driven monitoring
 - **Image format**: Saves as PNG
 - **Duplicate detection**: SHA256 hash-based image comparison
 - **Icon generation**: Dynamic icon creation using System.Drawing API

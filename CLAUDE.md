@@ -42,7 +42,7 @@ ClippedImgToWSLPath/
 
 | Class | Purpose |
 |-------|---------|
-| `MainForm` | System tray app, clipboard polling (1s interval), image saving |
+| `MainForm` | System tray app, event-driven clipboard monitoring (AddClipboardFormatListener), image saving |
 | `PathConverter` | Converts `C:\path` → `/mnt/c/path` |
 | `ImageHashCalculator` | SHA256 hash for duplicate detection |
 

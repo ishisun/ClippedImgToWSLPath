@@ -53,7 +53,7 @@ ClippedImgToWSLPath is a Windows Forms system tray application that monitors the
 The main application form that runs hidden in the background.
 
 **Responsibilities:**
-- Clipboard monitoring via timer polling (1-second interval)
+- Clipboard monitoring via AddClipboardFormatListener API (event-driven)
 - Image detection and deduplication coordination
 - Image saving to PNG format
 - System tray icon management
@@ -62,7 +62,7 @@ The main application form that runs hidden in the background.
 **Key Methods:**
 | Method | Description |
 |--------|-------------|
-| `ClipboardTimer_Tick()` | Polls clipboard for new images |
+| `ProcessClipboardChange()` | Handles WM_CLIPBOARDUPDATE message for new images |
 | `GetImageHash()` | Delegates to ImageHashCalculator |
 | `SaveImageAndConvertPath()` | Saves image and converts path to WSL format |
 | `ConvertToWSLPath()` | Delegates to PathConverter |
@@ -110,7 +110,7 @@ Utility for icon generation (if needed).
 1. User copies image to clipboard
          │
          ▼
-2. Timer tick detects image in clipboard
+2. WM_CLIPBOARDUPDATE message received
          │
          ▼
 3. Generate hash of image (via ImageHashCalculator)
