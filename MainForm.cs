@@ -17,8 +17,12 @@ namespace ClippedImgToWSLPath
         private string logPath = Path.Combine(Application.StartupPath, "clipboard_log.txt");
         private bool isProcessingClipboard = false;
         private DateTime lastClipboardTime = DateTime.MinValue;
-        private bool enableLogging = false; // ログ出力のオン/オフ
+        private bool enableLogging = false; // Logging on/off
         private bool timerEnabled = true; // Timer functionality on/off
+
+        // Utility class instances for path conversion and image hashing
+        private readonly PathConverter pathConverter = new PathConverter();
+        private readonly ImageHashCalculator imageHashCalculator = new ImageHashCalculator();
 
         [DllImport("user32.dll")]
         static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
@@ -213,16 +217,7 @@ namespace ClippedImgToWSLPath
 
         private string GetImageHash(Image image)
         {
-            using (var ms = new MemoryStream())
-            {
-                image.Save(ms, ImageFormat.Png);
-                var bytes = ms.ToArray();
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    var hash = sha256.ComputeHash(bytes);
-                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                }
-            }
+            return imageHashCalculator.ComputeHash(image);
         }
 
         private void SaveImageAndConvertPath(Image image)
@@ -250,15 +245,7 @@ namespace ClippedImgToWSLPath
 
         private string ConvertToWSLPath(string windowsPath)
         {
-            string path = windowsPath.Replace('\\', '/');
-            
-            if (path.Length >= 2 && path[1] == ':')
-            {
-                char driveLetter = char.ToLower(path[0]);
-                path = "/mnt/" + driveLetter + path.Substring(2);
-            }
-            
-            return path;
+            return pathConverter.ConvertToWSLPath(windowsPath);
         }
 
         private void ShowBalloonTip(string title, string text, ToolTipIcon icon)
